@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-
 const studentTaskSchema = new mongoose.Schema(
   {
     studentId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
@@ -9,5 +8,4 @@ const studentTaskSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
 module.exports = mongoose.model("StudentTask", studentTaskSchema);
