@@ -4,6 +4,7 @@ import Register from "./pages/Register";
 import StudentDashboard from "./pages/StudentDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdvisorDashboard from "./pages/AdvisorDashboard";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 function App() {
@@ -36,6 +37,15 @@ function App() {
           element={
             <ProtectedRoute role="admin">
               <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/advisor/dashboard"
+          element={
+            <ProtectedRoute role="advisor">
+              <AdvisorDashboard />
             </ProtectedRoute>
           }
         />

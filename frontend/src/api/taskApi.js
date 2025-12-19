@@ -8,98 +8,65 @@ const getAuthHeaders = () => {
     Authorization: `Bearer ${token}`,
   };
 };
+// Helper to handle response
+const handleResponse = async (res) => {
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.message || "API Error");
+  }
+  return res.json();
+};
 
 // ================= STUDENT API =================
-
 // Fetch tasks for logged-in student
 export const fetchStudentTasks = async () => {
-  try {
-    const res = await fetch(`${API_URL}/student/tasks`, {
-      method: "GET",
-      headers: getAuthHeaders(),
-    });
-    if (!res.ok) throw new Error("Failed to fetch tasks");
-    return await res.json();
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
+  const res = await fetch(`${API_URL}/student/tasks`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+  return handleResponse(res);
 };
-
 // Request completion of a task
-export const requestTaskCompletion = async (taskId) => {
-  try {
-    const res = await fetch(`${API_URL}/student/request/${taskId}`, {
-      method: "PATCH",
-      headers: getAuthHeaders(),
-    });
-    if (!res.ok) throw new Error("Failed to send request");
-    return await res.json();
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
+export const requestTaskCompletion = async (taskId, proofImage) => {
+  const res = await fetch(`${API_URL}/student/request/${taskId}`, {
+    method: "PATCH",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ proofImage }), // Send image if present
+  });
+  return handleResponse(res);
 };
-
 // ================= TEACHER API =================
-
 // Teacher: Create task for all students
 export const createTaskForAllStudents = async (task) => {
-  try {
-    const res = await fetch(`${API_URL}/tasks/create`, {
-      method: "POST",
-      headers: getAuthHeaders(),
-      body: JSON.stringify(task),
-    });
-    if (!res.ok) throw new Error("Failed to create task");
-    return await res.json();
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
+  const res = await fetch(`${API_URL}/tasks/create`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(task),
+  });
+  return handleResponse(res);
 };
-
 // Teacher: Approve a student's task
 export const approveStudentTask = async (taskId) => {
-  try {
-    const res = await fetch(`${API_URL}/tasks/approve/${taskId}`, {
-      method: "PATCH",
-      headers: getAuthHeaders(),
-    });
-    if (!res.ok) throw new Error("Failed to approve task");
-    return await res.json();
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
+  const res = await fetch(`${API_URL}/tasks/approve/${taskId}`, {
+    method: "PATCH",
+    headers: getAuthHeaders(),
+  });
+  return handleResponse(res);
 };
-
 // Teacher: Fetch all students
 export const fetchStudents = async () => {
-  try {
-    const res = await fetch(`${API_URL}/tasks/students`, {
-      method: "GET",
-      headers: getAuthHeaders(),
-    });
-    if (!res.ok) throw new Error("Failed to fetch students");
-    return await res.json();
-  } catch (err) {
-    console.error(err);
-    return [];
-  }
+  const res = await fetch(`${API_URL}/tasks/students`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+  return handleResponse(res);
 };
 
 // Teacher: Fetch tasks for a specific student
 export const fetchTasksForStudent = async (studentId) => {
-  try {
-    const res = await fetch(`${API_URL}/tasks/student/${studentId}`, {
-      method: "GET",
-      headers: getAuthHeaders(),
-    });
-    if (!res.ok) throw new Error("Failed to fetch student tasks");
-    return await res.json();
-  } catch (err) {
-    console.error(err);
-    return [];
-  }
+  const res = await fetch(`${API_URL}/tasks/student/${studentId}`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+  return handleResponse(res);
 };

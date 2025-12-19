@@ -14,12 +14,21 @@ exports.getStudents = async (req, res) => {
   }
 };
 
-// Get tasks for a specific student (Teacher View)
+// Get tasks for a specific student (Teacher View - ISOLATED)
 exports.getStudentTasks = async (req, res) => {
   try {
-    const studentTasks = await StudentTask.find({ studentId: req.params.id })
+    // 1. Find all tasks created by THIS logged-in teacher
+    const myTasks = await Task.find({ createdBy: req.user.id }).select('_id');
+    const myTaskIds = myTasks.map(t => t._id);
+
+    // 2. Find StudentTask entries for this student allowing only MY tasks
+    const studentTasks = await StudentTask.find({
+      studentId: req.params.id,
+      taskId: { $in: myTaskIds }
+    })
       .populate("taskId")
       .populate("studentId", "name email batch");
+
     res.json(studentTasks);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -29,10 +38,15 @@ exports.getStudentTasks = async (req, res) => {
 // Approve a student's task (Teacher Action)
 exports.approveTask = async (req, res) => {
   try {
-    const studentTask = await StudentTask.findById(req.params.taskId);
+    const studentTask = await StudentTask.findById(req.params.taskId).populate("taskId");
 
     if (!studentTask) {
       return res.status(404).json({ message: "Task not found" });
+    }
+
+    // Security Check: Ensure the logged-in teacher OWNS this task
+    if (studentTask.taskId.createdBy.toString() !== req.user.id) {
+      return res.status(403).json({ message: "You are not authorized to approve this task." });
     }
 
     studentTask.completedByTeacher = true;
@@ -47,13 +61,14 @@ exports.approveTask = async (req, res) => {
 // Create a task assigned to all students (Teacher Action)
 exports.createTaskForAllStudents = async (req, res) => {
   try {
-    const { title, description } = req.body;
+    const { title, description, proofRequired } = req.body;
 
     // Step 1: Create the Task
     const newTask = await Task.create({
       title,
       description,
       createdBy: req.user.id,
+      proofRequired: proofRequired || false,
     });
 
     // Step 2: Get all students
@@ -99,9 +114,10 @@ exports.getMyTasks = async (req, res) => {
 exports.requestTaskCompletion = async (req, res) => {
   try {
     const { taskId } = req.params; // Using params as per route definition
+    const { proofImage } = req.body; // Base64 string
 
-    // Find by StudentTask ID (NOT Task ID)
-    const studentTask = await StudentTask.findById(taskId);
+    // Find by StudentTask ID (NOT Task ID) and populate generic task details
+    const studentTask = await StudentTask.findById(taskId).populate("taskId");
 
     if (!studentTask) {
       return res.status(404).json({ message: "Task entry not found" });
@@ -112,7 +128,16 @@ exports.requestTaskCompletion = async (req, res) => {
       return res.status(403).json({ message: "Access denied" });
     }
 
+    // Check if proof is required
+    if (studentTask.taskId.proofRequired && !proofImage) {
+      return res.status(400).json({ message: "This task requires a photo proof!" });
+    }
+
     studentTask.requestSent = true;
+    if (proofImage) {
+      studentTask.proofImage = proofImage;
+    }
+
     await studentTask.save();
 
     res.json({

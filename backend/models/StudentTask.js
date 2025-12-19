@@ -5,6 +5,7 @@ const studentTaskSchema = new mongoose.Schema(
     taskId: { type: mongoose.Schema.Types.ObjectId, ref: "Task", required: true },
     requestSent: { type: Boolean, default: false }, // Student requests completion
     completedByTeacher: { type: Boolean, default: false }, // Teacher approves
+    proofImage: { type: String }, // Base64 image string
   },
   { timestamps: true }
 );

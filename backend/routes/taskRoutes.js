@@ -7,15 +7,15 @@ const taskController = require("../controllers/taskController");
 
 // ================= TEACHER ROUTES ===
 // Get all students
-router.get("/students", protect, allowRoles("teacher"), taskController.getStudents);
+router.get("/students", protect, allowRoles("teacher", "advisor"), taskController.getStudents);
 
 // Get tasks for a specific student
-router.get("/student/:id", protect, allowRoles("teacher"), taskController.getStudentTasks);
+router.get("/student/:id", protect, allowRoles("teacher", "advisor"), taskController.getStudentTasks);
 
 // Approve a student's task
-router.patch("/approve/:taskId", protect, allowRoles("teacher"), taskController.approveTask);
+router.patch("/approve/:taskId", protect, allowRoles("teacher", "advisor"), taskController.approveTask);
 
 // Create a task for all students
-router.post("/create", protect, allowRoles("teacher"), taskController.createTaskForAllStudents);
+router.post("/create", protect, allowRoles("teacher", "advisor"), taskController.createTaskForAllStudents);
 
 module.exports = router;
