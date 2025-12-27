@@ -2,7 +2,7 @@ const Task = require("../models/Task");
 const User = require("../models/User");
 const StudentTask = require("../models/StudentTask");
 
-// ================= TEACHER CONTROLLERS =================
+// ================= TEACHER CONTROLLERS==
 
 // Get all students
 exports.getStudents = async (req, res) => {
@@ -14,20 +14,28 @@ exports.getStudents = async (req, res) => {
   }
 };
 
-// Get tasks for a specific student (Teacher View - ISOLATED)
+// Get tasks for a specific student (Teacher/Advisor View)
 exports.getStudentTasks = async (req, res) => {
   try {
-    // 1. Find all tasks created by THIS logged-in teacher
-    const myTasks = await Task.find({ createdBy: req.user.id }).select('_id');
-    const myTaskIds = myTasks.map(t => t._id);
+    let studentTasks;
 
-    // 2. Find StudentTask entries for this student allowing only MY tasks
-    const studentTasks = await StudentTask.find({
-      studentId: req.params.id,
-      taskId: { $in: myTaskIds }
-    })
-      .populate("taskId")
-      .populate("studentId", "name email batch");
+    if (req.user.role === "advisor") {
+      // ADVISOR: See ALL tasks from ALL teachers
+      studentTasks = await StudentTask.find({ studentId: req.params.id })
+        .populate("taskId")
+        .populate("studentId", "name email batch");
+    } else {
+      // TEACHER: See only tasks created by THIS teacher
+      const myTasks = await Task.find({ createdBy: req.user.id }).select('_id');
+      const myTaskIds = myTasks.map(t => t._id);
+
+      studentTasks = await StudentTask.find({
+        studentId: req.params.id,
+        taskId: { $in: myTaskIds }
+      })
+        .populate("taskId")
+        .populate("studentId", "name email batch");
+    }
 
     res.json(studentTasks);
   } catch (error) {
@@ -95,7 +103,7 @@ exports.createTaskForAllStudents = async (req, res) => {
   }
 };
 
-// ================= STUDENT CONTROLLERS =================
+// ================= STUDENT CONTROLLERS
 
 // Get tasks for the logged-in student
 exports.getMyTasks = async (req, res) => {

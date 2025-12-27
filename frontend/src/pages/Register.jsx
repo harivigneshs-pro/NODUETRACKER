@@ -1,6 +1,8 @@
 import { useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { User, Mail, Lock, Layers, Briefcase, GraduationCap, ArrowRight, UserPlus, AlertCircle } from "lucide-react";
 
 const Register = () => {
   const { register } = useContext(AuthContext);
@@ -33,84 +35,118 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="glass-card w-full max-w-md p-8 rounded-2xl animate-fade-in">
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10">
+        <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl mix-blend-multiply animate-pulse"></div>
+        <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-pink-500/20 rounded-full blur-3xl mix-blend-multiply animate-pulse" style={{ animationDelay: '1.5s' }}></div>
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+        className="glass-panel w-full max-w-lg p-8 sm:p-10 rounded-3xl shadow-2xl relative z-10 bg-white/40"
+      >
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-violet-500">
+          <div className="inline-block p-3 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white mb-4 shadow-lg shadow-indigo-500/30">
+            <UserPlus size={28} />
+          </div>
+          <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight mb-2">
             Create Account
           </h1>
-          <p className="text-gray-500 mt-2">Join NoDueTracker today</p>
+          <p className="text-slate-500 font-medium">Join NoDueTracker & start clearing</p>
         </div>
 
         {error && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-6 text-sm">
-            {error}
-          </div>
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            className="bg-red-50 text-red-600 p-4 rounded-xl mb-6 text-sm flex items-start gap-3 border border-red-100"
+          >
+            <AlertCircle className="shrink-0 mt-0.5" size={18} />
+            <span className="font-semibold">{error}</span>
+          </motion.div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-            <input
-              type="text"
-              required
-              className="glass-input w-full px-4 py-3 rounded-xl"
-              placeholder="John Doe"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            />
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-1.5">
+            <label className="text-sm font-bold text-slate-700 ml-1">Full Name</label>
+            <div className="relative group">
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+              <input
+                type="text"
+                required
+                className="glass-input w-full pl-11 pr-4 py-3 rounded-xl text-slate-800 font-medium placeholder:text-slate-400 focus:bg-white/80"
+                placeholder="John Doe"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              required
-              className="glass-input w-full px-4 py-3 rounded-xl"
-              placeholder="john@example.com"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            />
+          <div className="space-y-1.5">
+            <label className="text-sm font-bold text-slate-700 ml-1">Email</label>
+            <div className="relative group">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+              <input
+                type="email"
+                required
+                className="glass-input w-full pl-11 pr-4 py-3 rounded-xl text-slate-800 font-medium placeholder:text-slate-400 focus:bg-white/80"
+                placeholder="john@example.com"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input
-              type="password"
-              required
-              className="glass-input w-full px-4 py-3 rounded-xl"
-              placeholder="••••••••"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            />
+          <div className="space-y-1.5">
+            <label className="text-sm font-bold text-slate-700 ml-1">Password</label>
+            <div className="relative group">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+              <input
+                type="password"
+                required
+                className="glass-input w-full pl-11 pr-4 py-3 rounded-xl text-slate-800 font-medium placeholder:text-slate-400 focus:bg-white/80"
+                placeholder="••••••••"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-              <select
-                className="glass-input w-full px-4 py-3 rounded-xl bg-white/50"
-                value={formData.role}
-                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-              >
-                <option value="student">Student</option>
-                <option value="teacher">Teacher</option>
-                <option value="advisor">Class Advisor</option>
-                <option value="admin">Admin</option>
-              </select>
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-slate-700 ml-1">Role</label>
+              <div className="relative group">
+                <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                <select
+                  className="glass-input w-full pl-11 pr-4 py-3 rounded-xl bg-white/50 text-slate-800 font-medium cursor-pointer"
+                  value={formData.role}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                >
+                  <option value="student">Student</option>
+                  <option value="teacher">Teacher</option>
+                  <option value="advisor">Advisor</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
             </div>
 
             {formData.role === "student" && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Batch</label>
-                <input
-                  type="text"
-                  required
-                  className="glass-input w-full px-4 py-3 rounded-xl"
-                  placeholder="2024-A"
-                  value={formData.batch}
-                  onChange={(e) => setFormData({ ...formData, batch: e.target.value })}
-                />
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-slate-700 ml-1">Batch</label>
+                <div className="relative group">
+                  <GraduationCap className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                  <input
+                    type="text"
+                    required
+                    className="glass-input w-full pl-11 pr-4 py-3 rounded-xl text-slate-800 font-medium placeholder:text-slate-400 focus:bg-white/80"
+                    placeholder="2024-A"
+                    value={formData.batch}
+                    onChange={(e) => setFormData({ ...formData, batch: e.target.value })}
+                  />
+                </div>
               </div>
             )}
           </div>
@@ -118,22 +154,28 @@ const Register = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full btn-primary py-3 rounded-xl shadow-lg mt-4"
+            className="w-full btn-primary py-4 rounded-xl shadow-lg shadow-indigo-500/30 flex items-center justify-center gap-2 text-lg group mt-4"
           >
-            {loading ? "Creating Account..." : "Register"}
+            {loading ? (
+              <span className="animate-pulse">Creating Account...</span>
+            ) : (
+              <>
+                Register <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+              </>
+            )}
           </button>
         </form>
 
-        <p className="text-center mt-6 text-gray-500 text-sm">
+        <p className="text-center mt-6 text-slate-500 font-medium">
           Already have an account?{" "}
-          <span
+          <button
             onClick={() => navigate("/login")}
-            className="text-indigo-600 font-semibold cursor-pointer hover:underline"
+            className="text-indigo-600 font-bold hover:text-indigo-700 hover:underline transition-all"
           >
             Sign In
-          </span>
+          </button>
         </p>
-      </div>
+      </motion.div>
     </div>
   );
 };
