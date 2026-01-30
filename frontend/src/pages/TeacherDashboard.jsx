@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from "react";
-import { fetchStudents, fetchTasksForStudent, approveStudentTask, createTask } from "../api/taskApi";
+import { fetchStudents, fetchTasksForStudent, approveStudentTask, createTaskForAllStudents as createTask } from "../api/taskApi";
 import DashboardLayout from "../components/DashboardLayout";
 import { AuthContext } from "../context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -157,17 +157,17 @@ const TeacherDashboard = () => {
           <div className="space-y-2 mb-6">
             <button
               onClick={() => setActiveTab("all-requests")}
-              className={`w-full flex items-center justify-between p-3.5 rounded-xl transition-all duration-200 ${activeTab === 'all-requests'
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
-                  : 'hover:bg-white/60 text-slate-600'
+              className={`w-full flex items-center justify-between p-3.5 rounded-xl transition-all duration-200 group ${activeTab === 'all-requests'
+                ? 'bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-lg shadow-indigo-500/30'
+                : 'hover:bg-white/60 text-slate-600 hover:shadow-sm'
                 }`}
             >
               <div className="flex items-center gap-3">
-                <Clock size={18} />
+                <Clock size={18} className={activeTab === 'all-requests' ? 'text-indigo-100' : 'text-slate-400 group-hover:text-indigo-500'} />
                 <span className="font-semibold text-sm">Pending</span>
               </div>
               {allPendingRequests.length > 0 && (
-                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${activeTab === 'all-requests' ? 'bg-white/20 text-white' : 'bg-red-100 text-red-600'
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${activeTab === 'all-requests' ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-600'
                   }`}>
                   {allPendingRequests.length}
                 </span>
@@ -176,31 +176,34 @@ const TeacherDashboard = () => {
 
             <button
               onClick={() => setActiveTab("create")}
-              className={`w-full flex items-center gap-3 p-3.5 rounded-xl transition-all duration-200 ${activeTab === 'create'
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
-                  : 'hover:bg-white/60 text-slate-600'
+              className={`w-full flex items-center gap-3 p-3.5 rounded-xl transition-all duration-200 group ${activeTab === 'create'
+                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
+                : 'hover:bg-white/60 text-slate-600 hover:shadow-sm'
                 }`}
             >
-              <Plus size={18} />
+              <Plus size={18} className={activeTab === 'create' ? 'text-indigo-100' : 'text-slate-400 group-hover:text-indigo-500'} />
               <span className="font-semibold text-sm">Create Task</span>
             </button>
           </div>
 
-          <div className="flex items-center gap-2 mb-3 px-1">
-            <Users size={16} className="text-slate-400" />
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Students</h3>
+          <div className="flex items-center justify-between mb-4 px-1">
+            <div className="flex items-center gap-2">
+              <Users size={16} className="text-slate-400" />
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Students</h3>
+            </div>
+            <span className="text-xs font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">{students.length}</span>
           </div>
 
           <div className="relative mb-4">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={16} />
             <input
               type="text"
               placeholder="Search students..."
-              className="w-full pl-9 pr-3 py-2 bg-white/50 rounded-lg text-sm border border-transparent focus:bg-white focus:border-indigo-300 outline-none transition-all"
+              className="w-full pl-9 pr-3 py-2.5 bg-white/50 rounded-xl text-sm border border-transparent focus:bg-white focus:border-indigo-300 outline-none transition-all shadow-sm focus:shadow-md"
             />
           </div>
 
-          <div className="overflow-y-auto flex-1 custom-scrollbar space-y-1">
+          <div className="overflow-y-auto flex-1 custom-scrollbar space-y-2 pr-1">
             {students.map(s => (
               <button
                 key={s._id}
@@ -208,13 +211,22 @@ const TeacherDashboard = () => {
                   setActiveTab("students");
                   selectStudent(s._id);
                 }}
-                className={`w-full text-left p-3 rounded-xl transition-all border border-transparent ${selectedStudent === s._id && activeTab === 'students'
-                    ? 'bg-white border-indigo-100 shadow-sm'
-                    : 'hover:bg-white/40 text-slate-600'
+                className={`w-full text-left p-2.5 rounded-xl transition-all border border-transparent group relative flex items-center gap-3 ${selectedStudent === s._id && activeTab === 'students'
+                  ? 'bg-white border-indigo-100 shadow-md ring-1 ring-indigo-50'
+                  : 'hover:bg-white/60 text-slate-600 hover:shadow-sm'
                   }`}
               >
-                <p className="font-semibold text-sm text-slate-800">{s.name}</p>
-                <p className="text-xs text-slate-500">{s.batch}</p>
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shadow-sm transition-transform ${selectedStudent === s._id && activeTab === 'students'
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-gradient-to-br from-slate-100 to-slate-200 text-slate-600 group-hover:scale-105'
+                  }`}>
+                  {s.name.charAt(0)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-sm text-slate-700 truncate">{s.name}</p>
+                  <p className="text-xs text-slate-400 truncate">{s.batch || "No Batch"}</p>
+                </div>
+                {selectedStudent === s._id && activeTab === 'students' && <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>}
               </button>
             ))}
           </div>
@@ -234,10 +246,15 @@ const TeacherDashboard = () => {
               </div>
 
               {allPendingRequests.length === 0 ? (
-                <div className="text-center py-20 text-slate-400">
-                  <CheckCircle size={64} className="mx-auto mb-4 text-emerald-100" />
-                  <p className="text-lg font-medium">All caught up!</p>
-                  <p>No pending requests to review.</p>
+                <div className="flex flex-col items-center justify-center py-20 text-slate-400 glass-card bg-white/40 border-dashed border-2 border-emerald-100">
+                  <div className="relative mb-6">
+                    <div className="absolute inset-0 bg-emerald-100 rounded-full blur-xl opacity-60 animate-pulse"></div>
+                    <div className="relative p-6 bg-white rounded-full shadow-lg shadow-emerald-50 text-emerald-500">
+                      <CheckCircle size={48} />
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-700 mb-1">All Caught Up!</h3>
+                  <p className="font-medium text-slate-500">No pending requests to review right now.</p>
                 </div>
               ) : (
                 <div className="grid gap-4">

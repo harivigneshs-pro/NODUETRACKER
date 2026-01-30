@@ -117,47 +117,53 @@ const AdvisorDashboard = () => {
 
                 {/* Sidebar: Student List */}
                 <div className="md:col-span-1 glass-panel rounded-2xl p-4 flex flex-col h-full bg-white/60 backdrop-blur-xl border-white/40">
-                    <div className="flex items-center gap-2 mb-4 px-1">
-                        <Users size={20} className="text-indigo-600" />
-                        <h3 className="text-lg font-bold text-slate-800">Students</h3>
-                        <span className="ml-auto bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-1 rounded-full">
+                    <div className="flex items-center justify-between mb-6 px-1 pt-1">
+                        <div className="flex items-center gap-2">
+                            <Users size={20} className="text-indigo-600" />
+                            <h3 className="text-lg font-bold text-slate-800">Students</h3>
+                        </div>
+                        <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
                             {students.length}
                         </span>
                     </div>
 
-                    <div className="relative mb-4">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                    <div className="relative mb-6">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={16} />
                         <input
                             type="text"
                             placeholder="Find student..."
-                            className="w-full pl-9 pr-3 py-2.5 bg-white/50 rounded-xl text-sm border border-transparent focus:bg-white focus:border-indigo-300 outline-none transition-all shadow-sm"
+                            className="w-full pl-9 pr-3 py-3 bg-white/50 rounded-xl text-sm border border-transparent focus:bg-white focus:border-indigo-300 outline-none transition-all shadow-sm focus:shadow-md"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
 
-                    <div className="overflow-y-auto flex-1 custom-scrollbar space-y-1">
+                    <div className="overflow-y-auto flex-1 custom-scrollbar space-y-2 pr-1">
                         {filteredStudents.map((s) => (
                             <button
                                 key={s._id}
                                 onClick={() => selectStudent(s._id)}
-                                className={`w-full text-left p-3 rounded-xl transition-all border border-transparent group relative ${selectedStudent === s._id
-                                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
-                                        : 'hover:bg-white/60 text-slate-600'
+                                className={`w-full text-left p-3 rounded-xl transition-all border border-transparent group relative flex items-center gap-3 ${selectedStudent === s._id
+                                    ? 'bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-lg shadow-indigo-500/30'
+                                    : 'hover:bg-white/60 text-slate-600 hover:shadow-sm'
                                     }`}
                             >
-                                <div className="flex justify-between items-center">
-                                    <div>
-                                        <div className={`font-semibold text-sm ${selectedStudent === s._id ? 'text-white' : 'text-slate-800'}`}>{s.name}</div>
-                                        <div className={`text-xs ${selectedStudent === s._id ? 'text-indigo-200' : 'text-slate-400'}`}>{s.batch || "No Batch"}</div>
-                                    </div>
-                                    {selectedStudent === s._id && <ChevronRight size={16} className="text-indigo-200" />}
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shadow-sm transition-transform ${selectedStudent === s._id
+                                    ? 'bg-white/20 text-white'
+                                    : 'bg-gradient-to-br from-slate-100 to-slate-200 text-slate-600 group-hover:scale-105'
+                                    }`}>
+                                    {s.name.charAt(0)}
                                 </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className={`font-bold text-sm truncate ${selectedStudent === s._id ? 'text-white' : 'text-slate-800'}`}>{s.name}</div>
+                                    <div className={`text-xs truncate ${selectedStudent === s._id ? 'text-indigo-100/80' : 'text-slate-400'}`}>{s.batch || "No Batch"}</div>
+                                </div>
+                                {selectedStudent === s._id && <ChevronRight size={16} className="text-indigo-200" />}
                             </button>
                         ))}
                         {filteredStudents.length === 0 && (
-                            <div className="text-center py-8 text-slate-400 text-sm">
-                                No students found
+                            <div className="text-center py-10">
+                                <p className="text-slate-400 text-sm font-medium">No students found</p>
                             </div>
                         )}
                     </div>
@@ -166,11 +172,15 @@ const AdvisorDashboard = () => {
                 {/* Main Content: Tasks View */}
                 <div className="md:col-span-3 h-full overflow-y-auto custom-scrollbar pb-20">
                     {!selectedStudent ? (
-                        <div className="h-full flex flex-col items-center justify-center text-slate-400 glass-card rounded-2xl border-dashed border-2 border-slate-200 bg-slate-50/50">
-                            <div className="p-6 bg-white rounded-full shadow-sm mb-4">
-                                <GraduationCap size={48} className="text-indigo-200" />
+                        <div className="h-full flex flex-col items-center justify-center text-slate-400 glass-card rounded-2xl border-dashed border-2 border-slate-200/60 bg-slate-50/30">
+                            <div className="relative mb-6">
+                                <div className="absolute inset-0 bg-indigo-100 rounded-full blur-xl opacity-50 animate-pulse"></div>
+                                <div className="relative p-8 bg-white rounded-full shadow-lg shadow-indigo-100 text-indigo-200">
+                                    <GraduationCap size={64} />
+                                </div>
                             </div>
-                            <p className="text-xl font-medium text-slate-500">Select a student to view details</p>
+                            <h3 className="text-2xl font-bold text-slate-700 mb-2">Student Overview</h3>
+                            <p className="text-slate-500 font-medium text-center max-w-sm">Select a student from the sidebar to view their detailed clearance status and progress.</p>
                         </div>
                     ) : (
                         <div className="space-y-6">

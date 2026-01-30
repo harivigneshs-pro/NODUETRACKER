@@ -60,7 +60,16 @@ h6 {
 }
 
 .glass-card {
-  @apply glass-panel rounded-2xl transition-all duration-300;
+  background: var(--glass-surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: 1rem;
+  /* rounded-2xl */
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
 }
 
 .glass-card:hover {
@@ -122,7 +131,20 @@ h6 {
 }
 
 .btn-secondary {
-  @apply bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 font-medium;
+  background-color: white;
+  color: #334155;
+  /* slate-700 */
+  border: 1px solid #e2e8f0;
+  /* slate-200 */
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background-color: #f8fafc;
+  /* slate-50 */
+  border-color: #cbd5e1;
+  /* slate-300 */
 }
 
 /* Animations - Tailwind handles most, but these are custom helpers */
@@ -146,8 +168,8 @@ h6 {
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -155,12 +177,39 @@ h6 {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: rgba(148, 163, 184, 0.5);
   border-radius: 99px;
-  border: 2px solid transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: #94a3b8;
+  background-color: rgba(148, 163, 184, 0.8);
+}
+
+/* Glass Button Variant */
+.glass-button {
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #334155;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-button:hover {
+  background: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.glass-button:active {
+  transform: translateY(0);
+}
+
+/* Gradient Text Utilities */
+.text-gradient-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }

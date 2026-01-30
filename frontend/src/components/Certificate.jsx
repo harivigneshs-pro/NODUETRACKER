@@ -4,14 +4,14 @@ import { GraduationCap, Award } from "lucide-react";
 
 const Certificate = ({ studentName, batch, date }) => {
     return (
-        <div className="certificate-container bg-white text-center absolute top-0 left-0 w-full h-full flex flex-col justify-center items-center z-[9999] overflow-hidden">
+        <div className="certificate-container relative bg-white w-full h-full flex flex-col items-center justify-center overflow-hidden">
             {/* Outer Border */}
             <div className="absolute inset-4 border-[12px] border-double border-indigo-900/80 pointer-events-none z-10"></div>
 
             {/* Inner Pattern Background */}
             <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:20px_20px] opacity-20 pointer-events-none"></div>
 
-            <div className="relative z-20 w-full max-w-4xl h-full flex flex-col justify-between p-16">
+            <div className="relative z-20 w-full max-w-4xl flex flex-col justify-between p-16 flex-grow">
                 {/* Header */}
                 <div className="flex flex-col items-center">
                     <div className="w-20 h-20 bg-indigo-900 rounded-full flex items-center justify-center text-white mb-6 shadow-xl">
@@ -76,12 +76,8 @@ const Certificate = ({ studentName, batch, date }) => {
             {/* Print Styles */}
             <style>{`
                 @media print {
-                    @page { margin: 0; size: landscape; }
-                    body { -webkit-print-color-adjust: exact; }
-                    body * { visibility: hidden; }
-                    .certificate-container, .certificate-container * { visibility: visible; }
-                    .certificate-container { position: absolute; left: 0; top: 0; width: 100%; height: 100%; margin: 0; }
-                    .btn-print { display: none !important; }
+                    @page { margin: 0.5cm; size: landscape; }
+                    .print-hidden { display: none !important; }
                 }
             `}</style>
         </div>

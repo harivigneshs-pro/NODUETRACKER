@@ -105,11 +105,11 @@ const StudentDashboard = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 bg-slate-900 overflow-y-auto"
+        className="fixed inset-0 z-50 bg-slate-900 overflow-y-auto print:bg-white print:absolute print:inset-0 print:overflow-visible"
       >
-        <div className="min-h-screen flex flex-col items-center justify-center p-4">
-          <div className="w-full max-w-4xl glass-panel bg-white rounded-xl shadow-2xl overflow-hidden relative">
-            <div className="absolute top-4 left-4 z-10">
+        <div className="min-h-screen flex flex-col items-center justify-center p-4 print:p-0 print:block print:h-full">
+          <div className="w-full max-w-4xl glass-panel bg-white rounded-xl shadow-2xl overflow-hidden relative print:shadow-none print:border-none print:w-full print:max-w-none print:rounded-none">
+            <div className="absolute top-4 left-4 z-10 print:hidden">
               <button
                 onClick={() => setShowCertificate(false)}
                 className="bg-slate-100 text-slate-700 px-4 py-2 rounded-lg font-medium hover:bg-slate-200 transition-colors flex items-center gap-2"
@@ -117,7 +117,7 @@ const StudentDashboard = () => {
                 ← Back
               </button>
             </div>
-            <div className="absolute top-4 right-4 z-10">
+            <div className="absolute top-4 right-4 z-10 print:hidden">
               <button
                 onClick={() => window.print()}
                 className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors shadow-lg flex items-center gap-2"
@@ -125,7 +125,7 @@ const StudentDashboard = () => {
                 <Download size={18} /> Print / Save
               </button>
             </div>
-            <div className="p-8 md:p-12 bg-white">
+            <div className="relative h-[800px] bg-white print:h-screen print:w-screen">
               <Certificate
                 studentName={user?.name || "Student"}
                 batch={user?.batch || "N/A"}
@@ -140,7 +140,7 @@ const StudentDashboard = () => {
 
   return (
     <DashboardLayout role="student">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto text-slate-800">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6">
           <div>
@@ -231,7 +231,7 @@ const StudentDashboard = () => {
                       <><FileText size={12} /> Assignment</>
                     )}
                   </div>
-                  {t.taskId.proofRequired && !t.completedByTeacher && (
+                  {t.taskId?.proofRequired && !t.completedByTeacher && (
                     <span className="text-xs font-semibold bg-rose-50 text-rose-600 px-2 py-1 rounded flex items-center gap-1">
                       <AlertCircle size={12} /> Proof Needed
                     </span>
@@ -240,19 +240,19 @@ const StudentDashboard = () => {
 
                 <h3 className={`text-xl font-bold leading-tight ${t.completedByTeacher ? 'text-slate-400 line-through' : 'text-slate-800'
                   }`}>
-                  {t.taskId.title}
+                  {t.taskId?.title}
                 </h3>
               </div>
 
               {/* Card Content */}
               <div className="p-6 pt-4 flex-grow flex flex-col justify-between">
                 <p className="text-slate-500 text-sm leading-relaxed mb-6">
-                  {t.taskId.description}
+                  {t.taskId?.description}
                 </p>
 
                 <div className="space-y-4">
                   {/* File Upload Section */}
-                  {!t.completedByTeacher && !t.requestSent && t.taskId.proofRequired && (
+                  {!t.completedByTeacher && !t.requestSent && t.taskId?.proofRequired && (
                     <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 border-dashed hover:border-indigo-300 transition-colors">
                       <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Attach Proof</label>
                       <input
@@ -267,7 +267,7 @@ const StudentDashboard = () => {
                   {/* Actions */}
                   {!t.completedByTeacher && (
                     <button
-                      onClick={() => handleRequest(t._id, t.taskId.proofRequired)}
+                      onClick={() => handleRequest(t._id, t.taskId?.proofRequired)}
                       disabled={t.requestSent || uploadingTaskId === t._id}
                       className={`
                         w-full py-3 rounded-xl font-semibold transition-all shadow-lg flex items-center justify-center gap-2
@@ -282,7 +282,7 @@ const StudentDashboard = () => {
                       ) : t.requestSent ? (
                         <><Clock size={18} /> In Review</>
                       ) : (
-                        <><Upload size={18} /> {t.taskId.proofRequired ? 'Submit Proof' : 'Mark Done'}</>
+                        <><Upload size={18} /> {t.taskId?.proofRequired ? 'Submit Proof' : 'Mark Done'}</>
                       )}
                     </button>
                   )}
