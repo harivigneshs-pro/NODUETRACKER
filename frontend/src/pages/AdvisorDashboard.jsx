@@ -437,9 +437,16 @@ const AdvisorDashboard = () => {
                                         >
                                             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                                 <div className="flex-1">
-                                                    <h4 className="font-semibold text-gray-900 mb-1">
-                                                        {task.taskId?.title || 'Untitled Task'}
-                                                    </h4>
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <h4 className="font-semibold text-gray-900">
+                                                            {task.taskId?.title || 'Untitled Task'}
+                                                        </h4>
+                                                        {task.taskId?.createdBy && (
+                                                            <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full font-medium">
+                                                                {task.taskId.createdBy.role === 'teacher' ? 'Teacher' : 'Advisor'}: {task.taskId.createdBy.name}
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                     <p className="text-sm text-gray-600 mb-2">
                                                         {task.taskId?.description || 'No description available'}
                                                     </p>

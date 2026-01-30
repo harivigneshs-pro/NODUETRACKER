@@ -45,7 +45,13 @@ exports.getStudentTasks = async (req, res) => {
     if (req.user.role === "advisor") {
       // ADVISOR: See ALL tasks from ALL teachers
       studentTasks = await StudentTask.find({ studentId: req.params.id })
-        .populate("taskId")
+        .populate({
+          path: "taskId",
+          populate: {
+            path: "createdBy",
+            select: "name email role"
+          }
+        })
         .populate("studentId", "name email batch");
     } else {
       // TEACHER: See only tasks created by THIS teacher
@@ -56,7 +62,13 @@ exports.getStudentTasks = async (req, res) => {
         studentId: req.params.id,
         taskId: { $in: myTaskIds }
       })
-        .populate("taskId")
+        .populate({
+          path: "taskId",
+          populate: {
+            path: "createdBy",
+            select: "name email role"
+          }
+        })
         .populate("studentId", "name email batch");
     }
 
@@ -132,7 +144,13 @@ exports.createTaskForAllStudents = async (req, res) => {
 exports.getMyTasks = async (req, res) => {
   try {
     const studentTasks = await StudentTask.find({ studentId: req.user.id })
-      .populate("taskId") // Populate task details (title, description)
+      .populate({
+        path: "taskId",
+        populate: {
+          path: "createdBy",
+          select: "name email role"
+        }
+      })
       .sort({ createdAt: -1 });
 
     res.json(studentTasks);

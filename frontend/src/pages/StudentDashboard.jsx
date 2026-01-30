@@ -273,11 +273,16 @@ const StudentDashboard = () => {
                       {task.completedByTeacher ? 'Completed' : 'In Progress'}
                     </span>
                   </div>
-                  <h3 className={`font-semibold text-gray-900 ${
+                  <h3 className={`font-semibold text-gray-900 mb-1 ${
                     task.completedByTeacher ? 'line-through opacity-60' : ''
                   }`}>
                     {task.taskId?.title}
                   </h3>
+                  {task.taskId?.createdBy && (
+                    <p className="text-xs text-gray-500 mb-2">
+                      Assigned by: <span className="font-medium">{task.taskId.createdBy.name}</span> ({task.taskId.createdBy.role})
+                    </p>
+                  )}
                 </div>
                 {task.taskId?.proofRequired && !task.completedByTeacher && (
                   <span className="badge badge-warning text-xs">

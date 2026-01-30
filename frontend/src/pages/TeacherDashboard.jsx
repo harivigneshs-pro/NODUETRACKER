@@ -427,7 +427,14 @@ const TeacherDashboard = () => {
                           )}
                         </div>
                         <div className="ml-13">
-                          <h5 className="font-medium text-gray-900 mb-1">{req.taskId?.title}</h5>
+                          <div className="flex items-center justify-between mb-1">
+                            <h5 className="font-medium text-gray-900">{req.taskId?.title}</h5>
+                            {req.taskId?.createdBy && (
+                              <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full font-medium">
+                                {req.taskId.createdBy.role === 'teacher' ? 'Teacher' : 'Advisor'}: {req.taskId.createdBy.name}
+                              </span>
+                            )}
+                          </div>
                           <p className="text-sm text-gray-600">{req.taskId?.description}</p>
                         </div>
                       </div>
