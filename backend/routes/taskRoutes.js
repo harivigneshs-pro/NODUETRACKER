@@ -9,6 +9,9 @@ const taskController = require("../controllers/taskController");
 // Get all students
 router.get("/students", protect, allowRoles("teacher", "advisor"), taskController.getStudents);
 
+// Get task statistics for a specific student
+router.get("/student/:id/stats", protect, allowRoles("teacher", "advisor"), taskController.getStudentTaskStats);
+
 // Get tasks for a specific student
 router.get("/student/:id", protect, allowRoles("teacher", "advisor"), taskController.getStudentTasks);
 

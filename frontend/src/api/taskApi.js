@@ -70,3 +70,12 @@ export const fetchTasksForStudent = async (studentId) => {
   });
   return handleResponse(res);
 };
+
+// Teacher: Fetch task statistics for a specific student
+export const fetchStudentTaskStats = async (studentId) => {
+  const res = await fetch(`${API_URL}/tasks/student/${studentId}/stats`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+  return handleResponse(res);
+};

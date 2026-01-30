@@ -14,6 +14,29 @@ exports.getStudents = async (req, res) => {
   }
 };
 
+// Get task completion statistics for a specific student
+exports.getStudentTaskStats = async (req, res) => {
+  try {
+    const studentTasks = await StudentTask.find({ studentId: req.params.id })
+      .populate("taskId");
+
+    const total = studentTasks.length;
+    const completed = studentTasks.filter(t => t.completedByTeacher).length;
+    const pending = studentTasks.filter(t => t.requestSent && !t.completedByTeacher).length;
+    const notStarted = studentTasks.filter(t => !t.requestSent && !t.completedByTeacher).length;
+
+    res.json({
+      total,
+      completed,
+      pending,
+      notStarted,
+      completionRate: total > 0 ? Math.round((completed / total) * 100) : 0
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Get tasks for a specific student (Teacher/Advisor View)
 exports.getStudentTasks = async (req, res) => {
   try {

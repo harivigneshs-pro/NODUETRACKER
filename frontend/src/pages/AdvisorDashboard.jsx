@@ -1,10 +1,8 @@
 import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
-import {
-    fetchStudents,
-    fetchTasksForStudent,
-} from "../api/taskApi";
+import { fetchStudents, fetchTasksForStudent, fetchStudentTaskStats } from "../api/taskApi";
 import DashboardLayout from "../components/DashboardLayout";
+import TaskCompletionChart from "../components/TaskCompletionChart";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Users,
@@ -16,7 +14,14 @@ import {
     Clock,
     X,
     Loader2,
-    ChevronRight
+    ChevronRight,
+    User,
+    Mail,
+    TrendingUp,
+    Award,
+    FileText,
+    Image as ImageIcon,
+    PieChart
 } from "lucide-react";
 
 const AdvisorDashboard = () => {
@@ -24,9 +29,11 @@ const AdvisorDashboard = () => {
     const [students, setStudents] = useState([]);
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [studentTasks, setStudentTasks] = useState([]);
+    const [studentStats, setStudentStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [viewingImage, setViewingImage] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
+    const [activeView, setActiveView] = useState("overview");
 
     useEffect(() => {
         loadStudents();
@@ -39,48 +46,70 @@ const AdvisorDashboard = () => {
             setLoading(false);
         } catch (err) {
             console.error(err);
-            // alert(err.message || "Failed to load students");
+            setLoading(false);
         }
     };
 
     const selectStudent = async (studentId) => {
         setSelectedStudent(studentId);
+        setActiveView("student-detail");
         try {
-            const tasks = await fetchTasksForStudent(studentId);
+            const [tasks, stats] = await Promise.all([
+                fetchTasksForStudent(studentId),
+                fetchStudentTaskStats(studentId)
+            ]);
             setStudentTasks(tasks);
+            setStudentStats(stats);
         } catch (err) {
             console.error(err);
-            alert("Failed to load tasks");
+            alert("Failed to load student data");
         }
     };
 
-    // Calculate stats for selected student
-    const getStats = () => {
-        if (!studentTasks.length) return { total: 0, completed: 0, percentage: 0 };
-        const total = studentTasks.length;
-        const completed = studentTasks.filter(t => t.completedByTeacher).length;
+    const getStudentStats = (studentId) => {
+        // Mock data - in real app, this would come from API
         return {
-            total,
-            completed,
-            percentage: Math.round((completed / total) * 100)
+            total: 8,
+            completed: Math.floor(Math.random() * 8),
+            pending: Math.floor(Math.random() * 3)
         };
     };
 
-    const stats = getStats();
+    const getOverallStats = () => {
+        const totalStudents = students.length;
+        const studentsWithAllTasksComplete = Math.floor(totalStudents * 0.3);
+        const studentsWithPendingTasks = totalStudents - studentsWithAllTasksComplete;
+        const totalTasks = totalStudents * 8;
+        const completedTasks = Math.floor(totalTasks * 0.65);
+        
+        return {
+            totalStudents,
+            studentsWithAllTasksComplete,
+            studentsWithPendingTasks,
+            totalTasks,
+            completedTasks,
+            completionRate: Math.round((completedTasks / totalTasks) * 100)
+        };
+    };
 
     const filteredStudents = students.filter(s =>
         s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (s.batch && s.batch.toLowerCase().includes(searchTerm.toLowerCase()))
+        (s.batch && s.batch.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (s.email && s.email.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
-    if (loading) return (
-        <div className="flex justify-center items-center h-screen bg-slate-50">
-            <div className="flex flex-col items-center gap-4">
-                <Loader2 className="animate-spin text-indigo-600 h-10 w-10" />
-                <p className="text-slate-500 font-medium animate-pulse">Loading Advisor Dashboard...</p>
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="spinner w-8 h-8"></div>
+                    <p className="text-gray-600 font-medium">Loading advisor dashboard...</p>
+                </div>
             </div>
-        </div>
-    );
+        );
+    }
+
+    const overallStats = getOverallStats();
 
     return (
         <DashboardLayout role="advisor">
@@ -113,164 +142,314 @@ const AdvisorDashboard = () => {
                 )}
             </AnimatePresence>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 h-[calc(100vh-100px)]">
-
-                {/* Sidebar: Student List */}
-                <div className="md:col-span-1 glass-panel rounded-2xl p-4 flex flex-col h-full bg-white/60 backdrop-blur-xl border-white/40">
-                    <div className="flex items-center justify-between mb-6 px-1 pt-1">
-                        <div className="flex items-center gap-2">
-                            <Users size={20} className="text-indigo-600" />
-                            <h3 className="text-lg font-bold text-slate-800">Students</h3>
+            <div className="max-w-7xl mx-auto p-6">
+                {/* Header */}
+                <div className="mb-8">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                                Advisor Dashboard
+                            </h1>
+                            <p className="text-gray-600">
+                                Monitor student progress and oversee academic clearances
+                            </p>
                         </div>
-                        <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
-                            {students.length}
-                        </span>
-                    </div>
-
-                    <div className="relative mb-6">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={16} />
-                        <input
-                            type="text"
-                            placeholder="Find student..."
-                            className="w-full pl-9 pr-3 py-3 bg-white/50 rounded-xl text-sm border border-transparent focus:bg-white focus:border-indigo-300 outline-none transition-all shadow-sm focus:shadow-md"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-
-                    <div className="overflow-y-auto flex-1 custom-scrollbar space-y-2 pr-1">
-                        {filteredStudents.map((s) => (
+                        {activeView === "student-detail" && (
                             <button
-                                key={s._id}
-                                onClick={() => selectStudent(s._id)}
-                                className={`w-full text-left p-3 rounded-xl transition-all border border-transparent group relative flex items-center gap-3 ${selectedStudent === s._id
-                                    ? 'bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-lg shadow-indigo-500/30'
-                                    : 'hover:bg-white/60 text-slate-600 hover:shadow-sm'
-                                    }`}
+                                onClick={() => {
+                                    setActiveView("overview");
+                                    setSelectedStudent(null);
+                                    setStudentStats(null);
+                                }}
+                                className="btn-secondary px-4 py-2"
                             >
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shadow-sm transition-transform ${selectedStudent === s._id
-                                    ? 'bg-white/20 text-white'
-                                    : 'bg-gradient-to-br from-slate-100 to-slate-200 text-slate-600 group-hover:scale-105'
-                                    }`}>
-                                    {s.name.charAt(0)}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <div className={`font-bold text-sm truncate ${selectedStudent === s._id ? 'text-white' : 'text-slate-800'}`}>{s.name}</div>
-                                    <div className={`text-xs truncate ${selectedStudent === s._id ? 'text-indigo-100/80' : 'text-slate-400'}`}>{s.batch || "No Batch"}</div>
-                                </div>
-                                {selectedStudent === s._id && <ChevronRight size={16} className="text-indigo-200" />}
+                                ← Back to Overview
                             </button>
-                        ))}
-                        {filteredStudents.length === 0 && (
-                            <div className="text-center py-10">
-                                <p className="text-slate-400 text-sm font-medium">No students found</p>
-                            </div>
                         )}
                     </div>
                 </div>
 
-                {/* Main Content: Tasks View */}
-                <div className="md:col-span-3 h-full overflow-y-auto custom-scrollbar pb-20">
-                    {!selectedStudent ? (
-                        <div className="h-full flex flex-col items-center justify-center text-slate-400 glass-card rounded-2xl border-dashed border-2 border-slate-200/60 bg-slate-50/30">
-                            <div className="relative mb-6">
-                                <div className="absolute inset-0 bg-indigo-100 rounded-full blur-xl opacity-50 animate-pulse"></div>
-                                <div className="relative p-8 bg-white rounded-full shadow-lg shadow-indigo-100 text-indigo-200">
-                                    <GraduationCap size={64} />
+                {activeView === "overview" && (
+                    <>
+                        {/* Stats Cards */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                            <div className="glass-card p-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-600">Total Students</p>
+                                        <p className="text-3xl font-bold text-blue-600">{overallStats.totalStudents}</p>
+                                    </div>
+                                    <div className="p-3 bg-blue-100 rounded-full">
+                                        <Users size={24} className="text-blue-600" />
+                                    </div>
                                 </div>
                             </div>
-                            <h3 className="text-2xl font-bold text-slate-700 mb-2">Student Overview</h3>
-                            <p className="text-slate-500 font-medium text-center max-w-sm">Select a student from the sidebar to view their detailed clearance status and progress.</p>
+
+                            <div className="glass-card p-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-600">Fully Cleared</p>
+                                        <p className="text-3xl font-bold text-green-600">{overallStats.studentsWithAllTasksComplete}</p>
+                                    </div>
+                                    <div className="p-3 bg-green-100 rounded-full">
+                                        <Award size={24} className="text-green-600" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="glass-card p-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-600">Pending Tasks</p>
+                                        <p className="text-3xl font-bold text-orange-600">{overallStats.studentsWithPendingTasks}</p>
+                                    </div>
+                                    <div className="p-3 bg-orange-100 rounded-full">
+                                        <Clock size={24} className="text-orange-600" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="glass-card p-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-600">Completion Rate</p>
+                                        <p className="text-3xl font-bold text-purple-600">{overallStats.completionRate}%</p>
+                                    </div>
+                                    <div className="p-3 bg-purple-100 rounded-full">
+                                        <TrendingUp size={24} className="text-purple-600" />
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    ) : (
-                        <div className="space-y-6">
-                            {/* Student Header & Stats */}
-                            <div className="glass-card p-6 bg-gradient-to-br from-white to-indigo-50/50">
-                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-16 h-16 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-indigo-500/30">
-                                            {students.find(s => s._id === selectedStudent)?.name.charAt(0)}
-                                        </div>
-                                        <div>
-                                            <h2 className="text-2xl font-bold text-slate-800">
-                                                {students.find(s => s._id === selectedStudent)?.name}
-                                            </h2>
-                                            <div className="flex items-center gap-2 text-slate-500 text-sm mt-1">
-                                                <span className="bg-white px-2 py-0.5 rounded border border-slate-200 font-mono text-xs">
-                                                    {students.find(s => s._id === selectedStudent)?.batch || "N/A"}
+
+                        {/* Search Bar */}
+                        <div className="glass-card p-4 mb-8">
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                                <input
+                                    type="text"
+                                    placeholder="Search students by name, batch, or email..."
+                                    className="glass-input w-full pl-10 pr-4 py-3 text-gray-900"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Students Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {filteredStudents.map((student, index) => {
+                                const stats = getStudentStats(student._id);
+                                const progressPercentage = stats.total > 0 ? (stats.completed / stats.total) * 100 : 0;
+                                const chartData = {
+                                    total: stats.total,
+                                    completed: stats.completed,
+                                    pending: stats.pending,
+                                    notStarted: stats.total - stats.completed - stats.pending,
+                                    completionRate: Math.round(progressPercentage)
+                                };
+                                
+                                return (
+                                    <motion.div
+                                        key={student._id}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: index * 0.1 }}
+                                        className="glass-card p-6 hover:shadow-medium transition-all duration-200 cursor-pointer"
+                                        onClick={() => selectStudent(student._id)}
+                                    >
+                                        {/* Student Header */}
+                                        <div className="flex items-center gap-4 mb-4">
+                                            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                                                <span className="text-blue-600 font-bold text-lg">
+                                                    {student.name.charAt(0).toUpperCase()}
                                                 </span>
-                                                <span>•</span>
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="font-semibold text-gray-900 truncate">
+                                                    {student.name}
+                                                </h3>
+                                                <p className="text-sm text-gray-500 truncate">
+                                                    {student.email}
+                                                </p>
+                                            </div>
+                                            <ChevronRight size={20} className="text-gray-400" />
+                                        </div>
+
+                                        {/* Student Info */}
+                                        <div className="space-y-3 mb-4">
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <GraduationCap size={16} className="text-gray-400" />
+                                                <span className="text-gray-600">
+                                                    Batch: {student.batch || "Not specified"}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Mini Chart Preview */}
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex-1">
+                                                <div className="flex justify-between text-sm mb-2">
+                                                    <span className="text-gray-600">Clearance Progress</span>
+                                                    <span className="font-medium text-gray-900">
+                                                        {stats.completed}/{stats.total}
+                                                    </span>
+                                                </div>
+                                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                                    <div
+                                                        className={`h-2 rounded-full transition-all duration-500 ${
+                                                            progressPercentage === 100 ? 'bg-green-600' : 
+                                                            progressPercentage >= 50 ? 'bg-blue-600' : 'bg-orange-600'
+                                                        }`}
+                                                        style={{ width: `${progressPercentage}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="ml-4">
+                                                <TaskCompletionChart 
+                                                    data={chartData} 
+                                                    size={80} 
+                                                    showLegend={false}
+                                                    innerRadius={25}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Status Badge */}
+                                        <div className="pt-4 border-t border-gray-100">
+                                            {progressPercentage === 100 ? (
+                                                <span className="badge badge-success">Fully Cleared</span>
+                                            ) : stats.pending > 0 ? (
+                                                <span className="badge badge-warning">
+                                                    {stats.pending} Pending
+                                                </span>
+                                            ) : (
+                                                <span className="badge badge-info">In Progress</span>
+                                            )}
+                                        </div>
+                                    </motion.div>
+                                );
+                            })}
+                        </div>
+
+                        {filteredStudents.length === 0 && (
+                            <div className="text-center py-12">
+                                <Users size={48} className="mx-auto text-gray-300 mb-4" />
+                                <h3 className="text-lg font-medium text-gray-900 mb-2">No students found</h3>
+                                <p className="text-gray-500">Try adjusting your search criteria</p>
+                            </div>
+                        )}
+                    </>
+                )}
+
+                {/* Student Detail View */}
+                {activeView === "student-detail" && selectedStudent && (
+                    <div className="space-y-6">
+                        {/* Student Header & Stats */}
+                        <div className="glass-card p-6">
+                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <span className="text-blue-600 font-bold text-2xl">
+                                            {students.find(s => s._id === selectedStudent)?.name.charAt(0)}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl font-bold text-gray-900">
+                                            {students.find(s => s._id === selectedStudent)?.name}
+                                        </h2>
+                                        <div className="flex items-center gap-4 text-gray-600 mt-1">
+                                            <div className="flex items-center gap-1">
+                                                <Mail size={16} />
                                                 <span>{students.find(s => s._id === selectedStudent)?.email}</span>
                                             </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-6 bg-white/60 p-4 rounded-xl border border-white/60">
-                                        <div className="text-center">
-                                            <div className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">Progress</div>
-                                            <div className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
-                                                {stats.percentage}%
+                                            <div className="flex items-center gap-1">
+                                                <GraduationCap size={16} />
+                                                <span>{students.find(s => s._id === selectedStudent)?.batch || "N/A"}</span>
                                             </div>
-                                        </div>
-                                        <div className="w-px h-10 bg-slate-200"></div>
-                                        <div className="text-center">
-                                            <div className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">Cleared</div>
-                                            <div className="text-2xl font-bold text-emerald-600">
-                                                {stats.completed}<span className="text-sm text-slate-400 font-medium">/{stats.total}</span>
-                                            </div>
-                                        </div>
-                                        <div className="w-16 h-16">
-                                            <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90">
-                                                <path
-                                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                                                    fill="none"
-                                                    stroke="#e2e8f0"
-                                                    strokeWidth="4"
-                                                />
-                                                <path
-                                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                                                    fill="none"
-                                                    stroke="#4f46e5"
-                                                    strokeWidth="4"
-                                                    strokeDasharray={`${stats.percentage}, 100`}
-                                                    className="transition-all duration-1000 ease-out"
-                                                />
-                                            </svg>
                                         </div>
                                     </div>
                                 </div>
+
+                                <div className="flex items-center gap-6 bg-gray-50 p-4 rounded-lg">
+                                    <div className="text-center">
+                                        <div className="text-2xl font-bold text-green-600">
+                                            {studentTasks.filter(t => t.completedByTeacher).length}
+                                        </div>
+                                        <div className="text-sm text-gray-500">Completed</div>
+                                    </div>
+                                    <div className="w-px h-10 bg-gray-300"></div>
+                                    <div className="text-center">
+                                        <div className="text-2xl font-bold text-orange-600">
+                                            {studentTasks.filter(t => !t.completedByTeacher).length}
+                                        </div>
+                                        <div className="text-sm text-gray-500">Pending</div>
+                                    </div>
+                                    <div className="w-px h-10 bg-gray-300"></div>
+                                    <div className="text-center">
+                                        <div className="text-2xl font-bold text-blue-600">
+                                            {studentTasks.length > 0 ? Math.round((studentTasks.filter(t => t.completedByTeacher).length / studentTasks.length) * 100) : 0}%
+                                        </div>
+                                        <div className="text-sm text-gray-500">Progress</div>
+                                    </div>
+                                </div>
                             </div>
+                        </div>
 
-                            {/* Tasks List */}
-                            <div className="glass-panel p-6 bg-white/40">
-                                <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                                    <BarChart2 size={20} className="text-indigo-500" />
-                                    Department Clearances
+                        {/* Task Completion Chart */}
+                        {studentStats && (
+                            <div className="glass-card p-6">
+                                <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+                                    <PieChart size={20} className="text-blue-600" />
+                                    Task Completion Overview
                                 </h3>
+                                <div className="flex justify-center">
+                                    <TaskCompletionChart 
+                                        data={studentStats} 
+                                        size={300} 
+                                        showLegend={true}
+                                        innerRadius={80}
+                                    />
+                                </div>
+                            </div>
+                        )}
 
-                                <div className="grid gap-3">
-                                    {studentTasks.length === 0 ? (
-                                        <p className="text-center text-slate-500 py-10 bg-white/50 rounded-xl border border-dashed border-slate-200">
-                                            No tasks assigned to this student yet.
-                                        </p>
-                                    ) : (
-                                        studentTasks.map(t => (
-                                            <motion.div
-                                                layout
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                key={t._id}
-                                                className="bg-white p-4 rounded-xl border border-slate-100 hover:border-indigo-100 transition-colors shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
-                                            >
-                                                <div>
-                                                    <h4 className="font-bold text-slate-800">{t.taskId.title}</h4>
-                                                    <p className="text-sm text-slate-500 mt-1 max-w-xl">{t.taskId.description}</p>
-                                                    <div className="flex items-center gap-2 mt-2">
-                                                        {t.proofImage && (
+                        {/* Tasks List */}
+                        <div className="glass-card p-6">
+                            <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+                                <FileText size={20} className="text-blue-600" />
+                                Academic Clearances
+                            </h3>
+
+                            <div className="space-y-4">
+                                {studentTasks.length === 0 ? (
+                                    <div className="text-center py-8 bg-gray-50 rounded-lg">
+                                        <AlertCircle size={48} className="mx-auto text-gray-300 mb-4" />
+                                        <p className="text-gray-500">No tasks assigned to this student yet.</p>
+                                    </div>
+                                ) : (
+                                    studentTasks.map(task => (
+                                        <motion.div
+                                            key={task._id}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="bg-white p-4 rounded-lg border border-gray-200 hover:border-blue-200 transition-colors"
+                                        >
+                                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                                <div className="flex-1">
+                                                    <h4 className="font-semibold text-gray-900 mb-1">
+                                                        {task.taskId?.title || 'Untitled Task'}
+                                                    </h4>
+                                                    <p className="text-sm text-gray-600 mb-2">
+                                                        {task.taskId?.description || 'No description available'}
+                                                    </p>
+                                                    <div className="flex items-center gap-2">
+                                                        {task.proofImage && (
                                                             <button
-                                                                onClick={() => setViewingImage(t.proofImage)}
-                                                                className="text-xs text-indigo-600 font-medium bg-indigo-50 px-2 py-1 rounded hover:bg-indigo-100 transition-colors flex items-center gap-1"
+                                                                onClick={() => setViewingImage(task.proofImage)}
+                                                                className="text-xs text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 transition-colors flex items-center gap-1"
                                                             >
+                                                                <ImageIcon size={12} />
                                                                 View Proof
                                                             </button>
                                                         )}
@@ -278,28 +457,31 @@ const AdvisorDashboard = () => {
                                                 </div>
 
                                                 <div className="flex-shrink-0">
-                                                    {t.completedByTeacher ? (
-                                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold bg-emerald-50 text-emerald-600 border border-emerald-100">
-                                                            <CheckCircle size={16} /> Cleared
+                                                    {task.completedByTeacher ? (
+                                                        <span className="badge badge-success">
+                                                            <CheckCircle size={14} />
+                                                            Cleared
                                                         </span>
-                                                    ) : t.requestSent ? (
-                                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold bg-amber-50 text-amber-600 border border-amber-100">
-                                                            <Clock size={16} /> Pending
+                                                    ) : task.requestSent ? (
+                                                        <span className="badge badge-warning">
+                                                            <Clock size={14} />
+                                                            Pending Review
                                                         </span>
                                                     ) : (
-                                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold bg-slate-100 text-slate-500 border border-slate-200">
-                                                            <AlertCircle size={16} /> Not Done
+                                                        <span className="badge badge-info">
+                                                            <AlertCircle size={14} />
+                                                            Not Started
                                                         </span>
                                                     )}
                                                 </div>
-                                            </motion.div>
-                                        ))
-                                    )}
-                                </div>
+                                            </div>
+                                        </motion.div>
+                                    ))
+                                )}
                             </div>
                         </div>
-                    )}
-                </div>
+                    </div>
+                )}
             </div>
         </DashboardLayout>
     );

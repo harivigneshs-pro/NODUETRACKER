@@ -11,8 +11,10 @@ import {
   FileText,
   AlertCircle,
   Download,
-  PartyPopper,
-  Loader2
+  Award,
+  Target,
+  TrendingUp,
+  Image as ImageIcon
 } from "lucide-react";
 
 const StudentDashboard = () => {
@@ -72,32 +74,21 @@ const StudentDashboard = () => {
     }
   };
 
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
-  };
-
-  if (loading) return (
-    <div className="flex justify-center items-center h-screen bg-slate-50">
-      <div className="flex flex-col items-center gap-4">
-        <Loader2 className="animate-spin text-indigo-600 h-10 w-10" />
-        <p className="text-slate-500 font-medium animate-pulse">Loading your tasks...</p>
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="flex flex-col items-center gap-4">
+          <div className="spinner w-8 h-8"></div>
+          <p className="text-gray-600 font-medium">Loading your dashboard...</p>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 
   const allCompleted = tasks.length > 0 && tasks.every(t => t.completedByTeacher);
   const pendingCount = tasks.filter(t => !t.completedByTeacher).length;
+  const completedCount = tasks.filter(t => t.completedByTeacher).length;
+  const progressPercentage = tasks.length > 0 ? (completedCount / tasks.length) * 100 : 0;
 
   if (showCertificate) {
     return (
@@ -105,14 +96,14 @@ const StudentDashboard = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 bg-slate-900 overflow-y-auto print:bg-white print:absolute print:inset-0 print:overflow-visible"
+        className="fixed inset-0 z-50 bg-gray-900 bg-opacity-75 overflow-y-auto print:bg-white print:absolute print:inset-0 print:overflow-visible"
       >
         <div className="min-h-screen flex flex-col items-center justify-center p-4 print:p-0 print:block print:h-full">
-          <div className="w-full max-w-4xl glass-panel bg-white rounded-xl shadow-2xl overflow-hidden relative print:shadow-none print:border-none print:w-full print:max-w-none print:rounded-none">
+          <div className="w-full max-w-4xl glass-panel bg-white overflow-hidden relative print:shadow-none print:border-none print:w-full print:max-w-none print:rounded-none">
             <div className="absolute top-4 left-4 z-10 print:hidden">
               <button
                 onClick={() => setShowCertificate(false)}
-                className="bg-slate-100 text-slate-700 px-4 py-2 rounded-lg font-medium hover:bg-slate-200 transition-colors flex items-center gap-2"
+                className="btn-secondary px-4 py-2 text-sm"
               >
                 ← Back
               </button>
@@ -120,9 +111,9 @@ const StudentDashboard = () => {
             <div className="absolute top-4 right-4 z-10 print:hidden">
               <button
                 onClick={() => window.print()}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors shadow-lg flex items-center gap-2"
+                className="btn-primary px-4 py-2 text-sm flex items-center gap-2"
               >
-                <Download size={18} /> Print / Save
+                <Download size={16} /> Print Certificate
               </button>
             </div>
             <div className="relative h-[800px] bg-white print:h-screen print:w-screen">
@@ -140,163 +131,222 @@ const StudentDashboard = () => {
 
   return (
     <DashboardLayout role="student">
-      <div className="max-w-6xl mx-auto text-slate-800">
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6">
-          <div>
-            <h1 className="text-4xl font-extrabold text-slate-800 tracking-tight">
-              Hello, <span className="text-indigo-600 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600">{user?.name?.split(' ')[0] || 'Student'}</span> 👋
-            </h1>
-            <p className="text-slate-500 mt-2 text-lg">Here's your progress on clearing dues.</p>
-          </div>
+      <div className="max-w-7xl mx-auto p-6">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Welcome back, {user?.name?.split(' ')[0] || 'Student'}
+          </h1>
+          <p className="text-gray-600">
+            Track your progress and manage your academic tasks
+          </p>
+        </div>
 
-          <div className="flex gap-4">
-            <div className="glass-card px-6 py-4 flex items-center gap-4 bg-white/60">
-              <div className="p-3 bg-orange-100 rounded-full text-orange-600">
-                <Clock size={24} />
-              </div>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="glass-card p-6"
+          >
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-3xl font-bold text-slate-800 leading-none">{pendingCount}</p>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-1">Pending</p>
+                <p className="text-sm font-medium text-gray-600">Completed Tasks</p>
+                <p className="text-3xl font-bold text-green-600">{completedCount}</p>
+              </div>
+              <div className="p-3 bg-green-100 rounded-full">
+                <CheckCircle size={24} className="text-green-600" />
               </div>
             </div>
+          </motion.div>
 
-            {allCompleted && (
-              <motion.button
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setShowCertificate(true)}
-                className="bg-gradient-to-r from-amber-400 to-orange-500 text-white px-6 py-4 rounded-2xl font-bold shadow-lg shadow-orange-500/30 flex items-center gap-2"
-              >
-                <PartyPopper size={24} />
-                <span>Get Certificate</span>
-              </motion.button>
-            )}
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="glass-card p-6"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Pending Tasks</p>
+                <p className="text-3xl font-bold text-orange-600">{pendingCount}</p>
+              </div>
+              <div className="p-3 bg-orange-100 rounded-full">
+                <Clock size={24} className="text-orange-600" />
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="glass-card p-6"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Progress</p>
+                <p className="text-3xl font-bold text-blue-600">{Math.round(progressPercentage)}%</p>
+              </div>
+              <div className="p-3 bg-blue-100 rounded-full">
+                <TrendingUp size={24} className="text-blue-600" />
+              </div>
+            </div>
+          </motion.div>
         </div>
+
+        {/* Progress Bar */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="glass-card p-6 mb-8"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Overall Progress</h3>
+            <span className="text-sm font-medium text-gray-600">
+              {completedCount} of {tasks.length} tasks completed
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-3">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${progressPercentage}%` }}
+              transition={{ duration: 1, ease: "easeOut" }}
+              className="bg-blue-600 h-3 rounded-full"
+            />
+          </div>
+        </motion.div>
 
         {/* Success Banner */}
         <AnimatePresence>
           {allCompleted && (
             <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="mb-8"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="glass-card p-6 mb-8 bg-green-50 border-green-200"
             >
-              <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
-                <div className="relative z-10 flex items-center gap-6">
-                  <div className="p-4 bg-white/20 rounded-full backdrop-blur-sm">
-                    <CheckCircle size={40} />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-white mb-1">Passed with Flying Colors!</h2>
-                    <p className="text-emerald-50 text-lg">You have cleared all your dues. Your No Due Certificate is ready for download.</p>
-                  </div>
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-green-100 rounded-full">
+                  <Award size={32} className="text-green-600" />
                 </div>
-                <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-green-900 mb-1">
+                    Congratulations!
+                  </h3>
+                  <p className="text-green-700">
+                    You have completed all your tasks. Your certificate is ready for download.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowCertificate(true)}
+                  className="btn-success px-6 py-3 flex items-center gap-2"
+                >
+                  <Award size={20} />
+                  Get Certificate
+                </button>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
         {/* Tasks Grid */}
-        <motion.div
-          variants={container}
-          initial="hidden"
-          animate="show"
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          {tasks.map((t) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {tasks.map((task, index) => (
             <motion.div
-              key={t._id}
-              variants={item}
-              className={`glass-card p-0 flex flex-col h-full bg-white/70 hover:bg-white/90 group ${t.completedByTeacher ? 'border-emerald-200/50' : 'border-white/50'
-                }`}
+              key={task._id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 * index }}
+              className="glass-card p-6 hover:shadow-medium transition-all duration-200"
             >
-              {/* Card Header */}
-              <div className="p-6 pb-4 border-b border-slate-100/50">
-                <div className="flex justify-between items-start mb-4">
-                  <div className={`
-                    text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5
-                    ${t.completedByTeacher
-                      ? 'bg-emerald-100 text-emerald-700'
-                      : 'bg-indigo-50 text-indigo-700'}
-                  `}>
-                    {t.completedByTeacher ? (
-                      <><CheckCircle size={12} /> Cleared</>
-                    ) : (
-                      <><FileText size={12} /> Assignment</>
-                    )}
-                  </div>
-                  {t.taskId?.proofRequired && !t.completedByTeacher && (
-                    <span className="text-xs font-semibold bg-rose-50 text-rose-600 px-2 py-1 rounded flex items-center gap-1">
-                      <AlertCircle size={12} /> Proof Needed
+              {/* Task Header */}
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FileText size={16} className="text-gray-400" />
+                    <span className={`badge ${
+                      task.completedByTeacher ? 'badge-success' : 'badge-info'
+                    }`}>
+                      {task.completedByTeacher ? 'Completed' : 'In Progress'}
                     </span>
-                  )}
-                </div>
-
-                <h3 className={`text-xl font-bold leading-tight ${t.completedByTeacher ? 'text-slate-400 line-through' : 'text-slate-800'
+                  </div>
+                  <h3 className={`font-semibold text-gray-900 ${
+                    task.completedByTeacher ? 'line-through opacity-60' : ''
                   }`}>
-                  {t.taskId?.title}
-                </h3>
+                    {task.taskId?.title}
+                  </h3>
+                </div>
+                {task.taskId?.proofRequired && !task.completedByTeacher && (
+                  <span className="badge badge-warning text-xs">
+                    Proof Required
+                  </span>
+                )}
               </div>
 
-              {/* Card Content */}
-              <div className="p-6 pt-4 flex-grow flex flex-col justify-between">
-                <p className="text-slate-500 text-sm leading-relaxed mb-6">
-                  {t.taskId?.description}
-                </p>
+              {/* Task Description */}
+              <p className="text-gray-600 text-sm mb-6 leading-relaxed">
+                {task.taskId?.description}
+              </p>
 
-                <div className="space-y-4">
-                  {/* File Upload Section */}
-                  {!t.completedByTeacher && !t.requestSent && t.taskId?.proofRequired && (
-                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 border-dashed hover:border-indigo-300 transition-colors">
-                      <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Attach Proof</label>
-                      <input
-                        type="file"
-                        id={`file-${t._id}`}
-                        accept="image/*"
-                        className="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-indigo-100 file:text-indigo-700 hover:file:bg-indigo-200 cursor-pointer"
-                      />
-                    </div>
-                  )}
-
-                  {/* Actions */}
-                  {!t.completedByTeacher && (
-                    <button
-                      onClick={() => handleRequest(t._id, t.taskId?.proofRequired)}
-                      disabled={t.requestSent || uploadingTaskId === t._id}
-                      className={`
-                        w-full py-3 rounded-xl font-semibold transition-all shadow-lg flex items-center justify-center gap-2
-                        ${t.requestSent
-                          ? 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none'
-                          : 'btn-primary active:scale-95'
-                        }
-                      `}
-                    >
-                      {uploadingTaskId === t._id ? (
-                        <><Loader2 className="animate-spin" size={18} /> Uploading...</>
-                      ) : t.requestSent ? (
-                        <><Clock size={18} /> In Review</>
-                      ) : (
-                        <><Upload size={18} /> {t.taskId?.proofRequired ? 'Submit Proof' : 'Mark Done'}</>
-                      )}
-                    </button>
-                  )}
-
-                  {t.completedByTeacher && (
-                    <div className="w-full py-3 text-center text-emerald-600 font-medium bg-emerald-50 rounded-xl flex items-center justify-center gap-2">
-                      <CheckCircle size={18} /> Approved
-                    </div>
-                  )}
+              {/* File Upload */}
+              {!task.completedByTeacher && !task.requestSent && task.taskId?.proofRequired && (
+                <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-4 mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Upload Proof
+                  </label>
+                  <input
+                    type="file"
+                    id={`file-${task._id}`}
+                    accept="image/*"
+                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                  />
                 </div>
+              )}
+
+              {/* Action Button */}
+              <div className="flex gap-2">
+                {!task.completedByTeacher && (
+                  <button
+                    onClick={() => handleRequest(task._id, task.taskId?.proofRequired)}
+                    disabled={task.requestSent || uploadingTaskId === task._id}
+                    className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${
+                      task.requestSent
+                        ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                        : 'btn-primary'
+                    }`}
+                  >
+                    {uploadingTaskId === task._id ? (
+                      <>
+                        <div className="spinner w-4 h-4"></div>
+                        Uploading...
+                      </>
+                    ) : task.requestSent ? (
+                      <>
+                        <Clock size={16} />
+                        Under Review
+                      </>
+                    ) : (
+                      <>
+                        <Upload size={16} />
+                        {task.taskId?.proofRequired ? 'Submit Proof' : 'Mark Complete'}
+                      </>
+                    )}
+                  </button>
+                )}
+
+                {task.completedByTeacher && (
+                  <div className="flex-1 py-2 px-4 bg-green-50 text-green-700 rounded-lg font-medium text-center flex items-center justify-center gap-2">
+                    <CheckCircle size={16} />
+                    Approved
+                  </div>
+                )}
               </div>
             </motion.div>
           ))}
-        </motion.div>
+        </div>
       </div>
     </DashboardLayout>
   );
